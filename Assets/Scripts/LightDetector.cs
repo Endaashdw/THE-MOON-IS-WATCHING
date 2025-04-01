@@ -8,10 +8,12 @@ public class LightDetector : MonoBehaviour
     [SerializeField] private Transform player;
     [SerializeField] private Transform playerPackage;
     [SerializeField] private float lightThreshold = 0.5f;
+    [SerializeField] private float countdownDuration = 2f;
+
     private Light[] allLights;
     private Light directionalLight;
     private float lightLevel;
-
+    private float countdownToMoon; // Timer for moonlight visibility
     void Start()
     {
         allLights = FindObjectsByType<Light>(FindObjectsSortMode.None);
@@ -20,7 +22,7 @@ public class LightDetector : MonoBehaviour
             if (light.type == LightType.Directional)
             {
                 directionalLight = light;
-                break; //Only checks for one directional light 
+                break; // Only checks for one directional light 
             }
         }
     }
@@ -31,12 +33,18 @@ public class LightDetector : MonoBehaviour
 
         if (lightLevel > lightThreshold)
         {
-            Debug.Log("✅ The MOON is watching!"); // Clear message
-            ShowCanvasText(true);
+            Debug.Log("✅ The MOON is watching!");
+            countdownToMoon += Time.deltaTime; // Increment the timer
+
+            if (countdownToMoon >= countdownDuration)
+            {
+                ShowCanvasText(true); // Display the text after 2 seconds
+            }
         }
         else
         {
             Debug.Log("❌ The MOON cannot see you.");
+            countdownToMoon = 0f; // Reset the timer
             ShowCanvasText(false);
         }
 
@@ -50,7 +58,6 @@ public class LightDetector : MonoBehaviour
             TeleportToSpawn();
         }
     }
-
 
     float GetTotalLightIntensity()
     {
