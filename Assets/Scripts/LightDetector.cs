@@ -6,7 +6,6 @@ using System.Collections;
 public class LightDetector : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI reminderText;
-    [SerializeField] private Transform spawnPoint;
     [SerializeField] private Transform player;
     [SerializeField] private Animator anim;
     [SerializeField] private Transform playerPackage;
@@ -54,12 +53,6 @@ public class LightDetector : MonoBehaviour
         Debug.Log("Light Level: " + lightLevel);
         Debug.Log("Light Threshold: " + lightThreshold);
         Debug.Log("Condition Passed: " + (lightLevel > lightThreshold));
-
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            Debug.Log("Pressed E!");
-            TeleportToSpawn();
-        }
     }
 
     float GetTotalLightIntensity()
@@ -96,15 +89,6 @@ public class LightDetector : MonoBehaviour
     {
         ShowCanvasText(true); // Display the canvas text
         anim.SetBool("playerDead", true); // Trigger the death animation
-
-        // Start the delay coroutine
-        StartCoroutine(DelayedSceneChange());
-    }
-
-    private IEnumerator DelayedSceneChange()
-    {
-        yield return new WaitForSeconds(2f); // Wait for 2 seconds
-        SceneManager.LoadScene("DeathScene"); // Change the scene
     }
 
     bool IsInDirectSunlight()
@@ -128,28 +112,5 @@ public class LightDetector : MonoBehaviour
     private void ShowCanvasText(bool value)
     {
         reminderText.gameObject.SetActive(value);
-    }
-
-    private void TeleportToSpawn()
-    {
-        CharacterController characterController = player.GetComponent<CharacterController>();
-
-        if (characterController != null)
-        {
-            // Temporarily disable the CharacterController
-            characterController.enabled = false;
-
-            // Set the player's position to the spawn point
-            player.position = spawnPoint.position;
-
-            // Re-enable the CharacterController
-            characterController.enabled = true;
-
-            Debug.Log("Player teleported to spawn point!");
-        }
-        else
-        {
-            Debug.LogError("CharacterController not found on the player object!");
-        }
     }
 }
