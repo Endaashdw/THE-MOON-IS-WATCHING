@@ -1,7 +1,9 @@
 using UnityEngine;
+using TMPro;
 
 public class LightDetector : MonoBehaviour
 {
+    [SerializeField] private TextMeshProUGUI reminderText;
     public Transform player;
     public float lightThreshold = 0.5f;
     private Light[] allLights;
@@ -24,16 +26,20 @@ public class LightDetector : MonoBehaviour
     void Update()
     {
         lightLevel = GetTotalLightIntensity();
-        Debug.Log("Light Level: " + lightLevel); // This always prints the correct number
 
         if (lightLevel > lightThreshold)
         {
-            Debug.Log("✅ Player is visible!"); // Clear message
+            Debug.Log("✅ The MOON is watching!"); // Clear message
+            ShowCanvasText();
         }
         else
         {
-            Debug.Log("❌ Player is in shadow.");
+            Debug.Log("❌ The MOON cannot see you.");
         }
+
+        Debug.Log("Light Level: " + lightLevel);
+        Debug.Log("Light Threshold: " + lightThreshold);
+        Debug.Log("Condition Passed: " + (lightLevel > lightThreshold));
     }
 
 
@@ -83,5 +89,10 @@ public class LightDetector : MonoBehaviour
         }
         
         return false;
+    }
+
+    private void ShowCanvasText()
+    {
+        reminderText.gameObject.SetActive(true);
     }
 }
