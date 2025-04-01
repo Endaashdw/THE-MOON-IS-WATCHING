@@ -4,45 +4,36 @@ public class CloudRoaming : MonoBehaviour
 {
     [SerializeField] private float minSpeed = 1f; // Minimum speed of clouds
     [SerializeField] private float maxSpeed = 5f; // Maximum speed of clouds
-    [SerializeField] private float directionChangeInterval = 3f; // Time interval to change direction
+    [SerializeField] private float directionChangeInterval = 3f; // Time interval to randomize movement
 
     private float speed; // Current speed of the cloud
-    private Vector3 randomDirection; // Current movement direction
     private float timeUntilDirectionChange;
 
     void Start()
     {
-        // Initialize random speed and direction
+        // Initialize random speed
         speed = Random.Range(minSpeed, maxSpeed);
-        GenerateRandomDirection();
-
-        // Initialize the timer
         timeUntilDirectionChange = directionChangeInterval;
     }
 
     void Update()
     {
-        // Move the cloud in the current random direction
-        transform.Translate(randomDirection * speed * Time.deltaTime);
+        // Move the cloud backward on the Z-axis
+        transform.Translate(Vector3.back * speed * Time.deltaTime);
 
-        // Countdown to direction change
+        // Countdown to adjust speed
         timeUntilDirectionChange -= Time.deltaTime;
         if (timeUntilDirectionChange <= 0f)
         {
-            GenerateRandomDirection();
+            RandomizeMovement();
             timeUntilDirectionChange = directionChangeInterval; // Reset the timer
         }
     }
 
-    private void GenerateRandomDirection()
+    private void RandomizeMovement()
     {
-        // Generate a random 3D direction but keep Y value constant
-        randomDirection = new Vector3(
-            Random.Range(-1f, 1f), // Random X direction
-            0f,                   // Keep Y constant (no vertical movement)
-            Random.Range(-1f, 1f) // Random Z direction
-        ).normalized; // Normalize to ensure consistent speed
-
-        Debug.Log("New Direction: " + randomDirection);
+        // Randomize speed within the range
+        speed = Random.Range(minSpeed, maxSpeed);
+        Debug.Log("New Speed: " + speed);
     }
 }
