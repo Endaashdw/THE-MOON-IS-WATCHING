@@ -4,8 +4,10 @@ using TMPro;
 public class LightDetector : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI reminderText;
-    public Transform player;
-    public float lightThreshold = 0.5f;
+    [SerializeField] private Transform spawnPoint;
+    [SerializeField] private Transform player;
+    [SerializeField] private Transform playerPackage;
+    [SerializeField] private float lightThreshold = 0.5f;
     private Light[] allLights;
     private Light directionalLight;
     private float lightLevel;
@@ -30,16 +32,23 @@ public class LightDetector : MonoBehaviour
         if (lightLevel > lightThreshold)
         {
             Debug.Log("✅ The MOON is watching!"); // Clear message
-            ShowCanvasText();
+            ShowCanvasText(true);
         }
         else
         {
             Debug.Log("❌ The MOON cannot see you.");
+            ShowCanvasText(false);
         }
 
         Debug.Log("Light Level: " + lightLevel);
         Debug.Log("Light Threshold: " + lightThreshold);
         Debug.Log("Condition Passed: " + (lightLevel > lightThreshold));
+
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            Debug.Log("Pressed E!");
+            TeleportToSpawn();
+        }
     }
 
 
@@ -91,8 +100,31 @@ public class LightDetector : MonoBehaviour
         return false;
     }
 
-    private void ShowCanvasText()
+    private void ShowCanvasText(bool value)
     {
-        reminderText.gameObject.SetActive(true);
+        reminderText.gameObject.SetActive(value);
+    }
+
+    private void TeleportToSpawn()
+    {
+        CharacterController characterController = player.GetComponent<CharacterController>();
+
+        if (characterController != null)
+        {
+            // Temporarily disable the CharacterController
+            characterController.enabled = false;
+
+            // Set the player's position to the spawn point
+            player.position = spawnPoint.position;
+
+            // Re-enable the CharacterController
+            characterController.enabled = true;
+
+            Debug.Log("Player teleported to spawn point!");
+        }
+        else
+        {
+            Debug.LogError("CharacterController not found on the player object!");
+        }
     }
 }
