@@ -50,6 +50,13 @@ namespace StarterAssets
 		public float TopClamp = 90.0f;
 		[Tooltip("How far in degrees can you move the camera down")]
 		public float BottomClamp = -90.0f;
+		[Header("Audio")]
+		[Tooltip("'Nuff Said")]
+		[SerializeField] private AudioSource audioSource;
+		[Tooltip("Timer to control footstep sound intervals")]
+		private float footstepTimer;
+		[Tooltip("Time between footstep sounds")]
+		[SerializeField] private float footstepInterval = 0.5f; 
 
 		// cinemachine
 		private float _cinemachineTargetPitch;
@@ -190,8 +197,16 @@ namespace StarterAssets
 			// if there is a move input rotate player when the player is moving
 			if (_input.move != Vector2.zero)
 			{
-				// move
+				// Move the player
 				inputDirection = transform.right * _input.move.x + transform.forward * _input.move.y;
+
+				// Play footstep sound with a timer
+				PlayFootstepSound();
+			}
+			else
+			{
+				// Stop audio when not moving
+				StopAudio();
 			}
 
 			// move the player
@@ -263,6 +278,33 @@ namespace StarterAssets
 
 			// when selected, draw a gizmo in the position of, and matching radius of, the grounded collider
 			Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z), GroundedRadius);
+		}
+		private void PlayFootstepSound()
+		{
+			if (Grounded && _input.move != Vector2.zero) // Only play when moving and grounded
+			{
+				footstepTimer -= Time.deltaTime;
+
+				if (footstepTimer <= 0f) // Play sound when timer reaches zero
+				{
+					if (!audioSource.isPlaying) // Avoid interrupting currently playing sound
+					{
+						audioSource.Play(); // Play the footstep sound
+					}
+					footstepTimer = footstepInterval; // Reset timer
+				}
+			}
+		}
+
+		private void StopAudio()
+		{
+			if (_input.move == Vector2.zero || !Grounded) // Stop when not moving or not grounded
+			{
+				if (audioSource.isPlaying)
+				{
+					audioSource.Stop();
+				}
+			}
 		}
 	}
 }
