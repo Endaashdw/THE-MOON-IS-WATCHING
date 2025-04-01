@@ -14,7 +14,7 @@ OcclusionCullingSettings:
 RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 10
-  m_Fog: 0
+  m_Fog: 1
   m_FogColor: {r: 0.019607844, g: 0.03529412, b: 0.04705883, a: 1}
   m_FogMode: 3
   m_FogDensity: 0.01
@@ -3678,6 +3678,7 @@ MonoBehaviour:
   reminderText: {fileID: 368047245}
   spawnPoint: {fileID: 1270341026}
   player: {fileID: 931581147}
+  anim: {fileID: 1975073064}
   playerPackage: {fileID: 938101995}
   lightThreshold: 0.5
   countdownDuration: 2
@@ -7162,7 +7163,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 800, y: 500}
+  m_SizeDelta: {x: 1700, y: 1700}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &1975073064
 Animator:

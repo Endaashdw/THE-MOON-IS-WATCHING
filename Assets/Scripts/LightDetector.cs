@@ -1,11 +1,14 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class LightDetector : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI reminderText;
     [SerializeField] private Transform spawnPoint;
     [SerializeField] private Transform player;
+    [SerializeField] private Animator anim;
     [SerializeField] private Transform playerPackage;
     [SerializeField] private float lightThreshold = 0.5f;
     [SerializeField] private float countdownDuration = 2f;
@@ -38,7 +41,7 @@ public class LightDetector : MonoBehaviour
 
             if (countdownToMoon >= countdownDuration)
             {
-                ShowCanvasText(true); // Display the text after 2 seconds
+                OnPlayerDeath();
             }
         }
         else
@@ -87,6 +90,21 @@ public class LightDetector : MonoBehaviour
         }
 
         return intensity;
+    }
+
+    private void OnPlayerDeath()
+    {
+        ShowCanvasText(true); // Display the canvas text
+        anim.SetBool("playerDead", true); // Trigger the death animation
+
+        // Start the delay coroutine
+        StartCoroutine(DelayedSceneChange());
+    }
+
+    private IEnumerator DelayedSceneChange()
+    {
+        yield return new WaitForSeconds(2f); // Wait for 2 seconds
+        SceneManager.LoadScene("DeathScene"); // Change the scene
     }
 
     bool IsInDirectSunlight()
