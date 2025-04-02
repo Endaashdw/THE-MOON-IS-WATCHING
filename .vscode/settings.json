@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "THE-MOON-IS-WATCHING-leian.sln"
+    "dotnet.defaultSolution": "THE-MOON-IS-WATCHING.sln"
 }
