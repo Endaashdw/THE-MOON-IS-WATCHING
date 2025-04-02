@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 #endif
 
 namespace StarterAssets
@@ -20,18 +21,6 @@ namespace StarterAssets
 		public float RotationSpeed = 1.0f;
 		[Tooltip("Acceleration and deceleration")]
 		public float SpeedChangeRate = 10.0f;
-
-		[Space(10)]
-		[Tooltip("The height the player can jump")]
-		public float JumpHeight = 1.2f;
-		[Tooltip("The character uses its own gravity value. The engine default is -9.81f")]
-		public float Gravity = -15.0f;
-
-		[Space(10)]
-		[Tooltip("Time required to pass before being able to jump again. Set to 0f to instantly jump again")]
-		public float JumpTimeout = 0.1f;
-		[Tooltip("Time required to pass before entering the fall state. Useful for walking down stairs")]
-		public float FallTimeout = 0.15f;
 
 		[Header("Player Grounded")]
 		[Tooltip("If the character is grounded or not. Not part of the CharacterController built in grounded check")]
@@ -58,6 +47,22 @@ namespace StarterAssets
 		[Tooltip("Time between footstep sounds")]
 		[SerializeField] private float footstepInterval = 0.5f; 
 
+		[Header("Stamina System")]
+		[Tooltip("Maximum stamina value")]
+		[SerializeField] private float maxStamina = 1.0f;
+		[Tooltip("Current stamina value")]
+		private float currentStamina;
+		[Tooltip("Stamina consumption rate while sprinting")]
+		[SerializeField] private float staminaConsumptionRate = 0.2f;
+		[Tooltip("Stamina regeneration rate")]
+		[SerializeField] private float staminaRegenerationRate = 0.1f;
+		[Tooltip("Reference to UI stamina bar")]
+		[SerializeField] private Image staminaBar;
+		[Tooltip("Time delay for stamina regeneration after consumption")]
+		[SerializeField] private float staminaRegenDelay = 2.0f;
+		private float regenTimer;
+
+
 		// cinemachine
 		private float _cinemachineTargetPitch;
 
@@ -65,7 +70,6 @@ namespace StarterAssets
 		private float _speed;
 		private float _rotationVelocity;
 		private float _verticalVelocity;
-		private float _terminalVelocity = 53.0f;
 
 		// timeout deltatime
 		private float _jumpTimeoutDelta;
@@ -106,22 +110,20 @@ namespace StarterAssets
 		{
 			_controller = GetComponent<CharacterController>();
 			_input = GetComponent<StarterAssetsInputs>();
+			currentStamina = maxStamina;
+			regenTimer = staminaRegenDelay; 
 #if ENABLE_INPUT_SYSTEM
 			_playerInput = GetComponent<PlayerInput>();
 #else
 			Debug.LogError( "Starter Assets package is missing dependencies. Please use Tools/Starter Assets/Reinstall Dependencies to fix it");
 #endif
-
-			// reset our timeouts on start
-			_jumpTimeoutDelta = JumpTimeout;
-			_fallTimeoutDelta = FallTimeout;
 		}
 
 		private void Update()
 		{
-			JumpAndGravity();
 			GroundedCheck();
 			Move();
+			UpdateStamina();
 		}
 
 		private void LateUpdate()
@@ -161,7 +163,7 @@ namespace StarterAssets
 		private void Move()
 		{
 			// set target speed based on move speed, sprint speed and if sprint is pressed
-			float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
+			float targetSpeed = (_input.sprint && currentStamina > 0.0f) ? SprintSpeed : MoveSpeed;
 
 			// a simplistic acceleration and deceleration designed to be easy to remove, replace, or iterate upon
 
@@ -212,55 +214,6 @@ namespace StarterAssets
 			// move the player
 			_controller.Move(inputDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
 		}
-
-		private void JumpAndGravity()
-		{
-			if (Grounded)
-			{
-				// reset the fall timeout timer
-				_fallTimeoutDelta = FallTimeout;
-
-				// stop our velocity dropping infinitely when grounded
-				if (_verticalVelocity < 0.0f)
-				{
-					_verticalVelocity = -2f;
-				}
-
-				// Jump
-				if (_input.jump && _jumpTimeoutDelta <= 0.0f)
-				{
-					// the square root of H * -2 * G = how much velocity needed to reach desired height
-					_verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
-				}
-
-				// jump timeout
-				if (_jumpTimeoutDelta >= 0.0f)
-				{
-					_jumpTimeoutDelta -= Time.deltaTime;
-				}
-			}
-			else
-			{
-				// reset the jump timeout timer
-				_jumpTimeoutDelta = JumpTimeout;
-
-				// fall timeout
-				if (_fallTimeoutDelta >= 0.0f)
-				{
-					_fallTimeoutDelta -= Time.deltaTime;
-				}
-
-				// if we are not grounded, do not jump
-				_input.jump = false;
-			}
-
-			// apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
-			if (_verticalVelocity < _terminalVelocity)
-			{
-				_verticalVelocity += Gravity * Time.deltaTime;
-			}
-		}
-
 		private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
 		{
 			if (lfAngle < -360f) lfAngle += 360f;
@@ -304,6 +257,31 @@ namespace StarterAssets
 				{
 					audioSource.Stop();
 				}
+			}
+		}
+
+		private void UpdateStamina()
+		{
+			if (_input.sprint && currentStamina > 0.0f) // Sprint consumes stamina
+			{
+				currentStamina -= staminaConsumptionRate * Time.deltaTime;
+				regenTimer = staminaRegenDelay; // Reset regen delay
+			}
+			else if (currentStamina < maxStamina && regenTimer <= 0.0f) // Regenerate stamina if not sprinting
+			{
+				currentStamina += staminaRegenerationRate * Time.deltaTime;
+			}
+			else if (regenTimer > 0.0f) // Count down regen delay timer
+			{
+				regenTimer -= Time.deltaTime;
+			}
+
+			currentStamina = Mathf.Clamp(currentStamina, 0.0f, maxStamina); // Ensure stamina stays within bounds
+
+			// Update the UI Stamina Bar
+			if (staminaBar != null)
+			{
+				staminaBar.fillAmount = currentStamina / maxStamina; // Normalize stamina for fill (0 to 1)
 			}
 		}
 	}
