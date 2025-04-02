@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "vhsfx.sln"
+    "dotnet.defaultSolution": "newmatthew.sln"
 }
